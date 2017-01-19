@@ -17,22 +17,28 @@ allow untrusted_app tsec_device:chr_file rw_file_perms;
 
 # Access to read SOC family
 r_dir_file(untrusted_app, sysfs_soc)
-
-# As determined by Audit2Allow
-allow untrusted_app hwui_prop:file { read open getattr };
-allow untrusted_app rootfs:dir read;
-allow untrusted_app sysfs:file { read open getattr };
+allow untrusted_app sysfs_tegra_gpu:file r_file_perms;
+allow untrusted_app sysfs_tegra_emc:file r_file_perms;
 
 allow untrusted_app system_app_service:service_manager find;
 
-# allow to write to nvfeedback.log
-# NeverAllow says no...
-#allow untrusted_app anr_data_file:file write;
+# Dont audit untrusted app accessing kernel
+dontaudit untrusted_app kernel:dir { search getattr };
 
-# allow external storage access, like gallery app
-allow untrusted_app fuseblk:dir r_dir_perms;
-allow untrusted_app fuseblk:file r_file_perms;
+# Allow access to external storage
+allow untrusted_app storage_stub_file:dir getattr;
 
-# Allow chrome to access wireless stats using ioctl 8B0F
-# Comment out now, Audit2Allow for right symbol later
-# allow untrusted_app self:udp_socket 0x8B0F;
+# Allow netcfg for TegraZone apk
+r_dir_file(untrusted_app, sysfs_netcfg)
+
+# Allow untrusted app to search for sysfs_zram only on userdebug
+userdebug_or_eng(`
+r_dir_file(untrusted_app, sysfs_zram)
+')
+
+# Apps on sdcard: access shared lib in asec
+allow untrusted_app asec_public_file:dir r_dir_perms;
+allow untrusted_app asec_public_file:file r_file_perms;
+
+# Dont allow untrusted apps to access MAC address
+dontauditxperm untrusted_app self:udp_socket ioctl SIOCGIFHWADDR;
