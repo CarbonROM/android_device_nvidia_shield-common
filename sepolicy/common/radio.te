@@ -18,6 +18,4 @@ allow radio system_app_service:service_manager find;
 # allow to write to nvfeedback.log
 allow radio anr_data_file:file write;
 
-# As determined by Audit2Allow
-allow radio hwui_prop:file read;
-allow radio system_app_data_file:dir getattr;
+allow radio system_app_data_file:dir { search getattr };
